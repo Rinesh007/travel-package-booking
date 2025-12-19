@@ -4,19 +4,26 @@ const createPackage = async (data, adminId) => {
   const {
     title,
     destination,
-    description,
     price,
-    duration_days
+    duration_days,
+    description,
+    image_url
   } = data;
 
   await pool.query(
     `INSERT INTO packages 
-     (title, destination, description, price, duration_days, created_by)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [title, destination, description, price, duration_days, adminId]
+     (title, destination, price, duration_days, description, image_url, created_by)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [
+      title,
+      destination,
+      price,
+      duration_days,
+      description,
+      image_url,
+      adminId
+    ]
   );
-
-  return true;
 };
 
 const getAllDestinations = async () => {
@@ -79,21 +86,33 @@ const updatePackage = async (id, data) => {
   const {
     title,
     destination,
-    description,
     price,
     duration_days,
-    is_active
+    description,
+    image_url
   } = data;
 
   await pool.query(
-    `UPDATE packages 
-     SET title=?, destination=?, description=?, price=?, duration_days=?, is_active=?
-     WHERE id=?`,
-    [title, destination, description, price, duration_days, is_active, id]
+    `UPDATE packages SET
+      title = ?,
+      destination = ?,
+      price = ?,
+      duration_days = ?,
+      description = ?,
+      image_url = ?
+     WHERE id = ?`,
+    [
+      title,
+      destination,
+      price,
+      duration_days,
+      description,
+      image_url,
+      id
+    ]
   );
-
-  return true;
 };
+
 
 const deletePackage = async (id) => {
   await pool.query(

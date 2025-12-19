@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
-import {
-  getPackages,
-  getDestinations
-} from "../api/package.api";
-import { createBooking } from "../api/booking.api";
+import { getPackages, getDestinations } from "../api/package.api";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Packages = () => {
   const [packages, setPackages] = useState([]);
@@ -20,13 +16,13 @@ const Packages = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Fetch destinations (for dropdown)
+  // Fetch destinations for filter dropdown
   useEffect(() => {
     const fetchDestinations = async () => {
       try {
         const res = await getDestinations();
         setDestinations(res.data);
-      } catch (err) {
+      } catch (error) {
         console.error("Failed to load destinations");
       }
     };
@@ -34,7 +30,7 @@ const Packages = () => {
     fetchDestinations();
   }, []);
 
-  // Fetch packages whenever filter/sort changes
+  // Fetch packages when filters/sort change
   useEffect(() => {
     fetchPackages();
   }, [destination, sort, order]);
@@ -50,15 +46,15 @@ const Packages = () => {
     try {
       const res = await getPackages(params);
       setPackages(res.data);
-    } catch (err) {
+    } catch (error) {
       console.error("Failed to load packages");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleBookNow = async (packageId) => {
-    // Guest user → redirect to login
+  const handleBookNow = (packageId) => {
+    // Guest → login first
     if (!user) {
       navigate("/login", {
         state: { redirectTo: `/packages/${packageId}` }
@@ -66,33 +62,28 @@ const Packages = () => {
       return;
     }
 
-    // Admin should not book
+    // Admin cannot book
     if (user.role === "admin") {
       alert("Admins cannot book packages");
       return;
     }
 
-    // Logged-in user → go to package details
+    // User → package details
     navigate(`/packages/${packageId}`);
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Available Travel Packages</h2>
+    <div className="max-w-7xl mx-auto px-6 py-10">
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">
+        Available Travel Packages
+      </h2>
 
       {/* FILTERS */}
-      <div
-        style={{
-          display: "flex",
-          gap: "12px",
-          marginBottom: "20px",
-          flexWrap: "wrap"
-        }}
-      >
-        {/* Destination filter */}
+      <div className="flex flex-wrap gap-4 mb-8">
         <select
           value={destination}
           onChange={(e) => setDestination(e.target.value)}
+          className="border rounded px-3 py-2"
         >
           <option value="">All Destinations</option>
           {destinations.map((dest) => (
@@ -102,62 +93,89 @@ const Packages = () => {
           ))}
         </select>
 
-        {/* Sort field */}
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
+          className="border rounded px-3 py-2"
         >
           <option value="">Sort By</option>
           <option value="price">Price</option>
           <option value="duration_days">Duration (days)</option>
         </select>
 
-        {/* Sort order */}
         <select
           value={order}
           onChange={(e) => setOrder(e.target.value)}
+          className="border rounded px-3 py-2"
         >
           <option value="asc">Low → High</option>
           <option value="desc">High → Low</option>
         </select>
 
-        {/* Clear filters */}
         <button
           onClick={() => {
             setDestination("");
             setSort("");
             setOrder("asc");
           }}
+          className="px-4 py-2 border rounded hover:bg-gray-100"
         >
           Clear
         </button>
       </div>
 
-      {/* PACKAGES LIST */}
+      {/* CONTENT */}
       {loading ? (
-        <p>Loading packages...</p>
+        <p className="text-gray-500">Loading packages...</p>
       ) : packages.length === 0 ? (
-        <p>No packages found</p>
+        <p className="text-gray-500">No packages found</p>
       ) : (
-        <div style={{ display: "grid", gap: "16px" }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {packages.map((pkg) => (
             <div
               key={pkg.id}
-              style={{
-                border: "1px solid #ccc",
-                padding: "16px",
-                borderRadius: "8px"
-              }}
+              className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden"
             >
-              <h3>{pkg.title}</h3>
-              <p><strong>Destination:</strong> {pkg.destination}</p>
-              <p><strong>Duration:</strong> {pkg.duration_days} days</p>
-              <p><strong>Price:</strong> ₹{pkg.price}</p>
-              <p>{pkg.description}</p>
+              {/* IMAGE */}
+              <img
+                src={
+                  pkg.image_url ||
+                  "https://via.placeholder.com/400x250?text=Travel+Package"
+                }
+                alt={pkg.title}
+                className="h-48 w-full object-cover"
+              />
 
-              <button onClick={() => handleBookNow(pkg.id)}>
-                Book Now
-              </button>
+              {/* CONTENT */}
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {pkg.title}
+                </h3>
+
+                <p className="text-sm text-gray-500">
+                  {pkg.destination}
+                </p>
+
+                <div className="flex justify-between items-center mt-3">
+                  <span className="font-bold text-blue-600">
+                    ₹{pkg.price}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {pkg.duration_days} days
+                  </span>
+                </div>
+
+                <p className="text-sm text-gray-600 mt-3 line-clamp-2">
+                  {pkg.description}
+                </p>
+
+                <button
+                  onClick={() => handleBookNow(pkg.id)}
+                  className="mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+                >
+                  Book Now
+                </button>
+              </div>
             </div>
           ))}
         </div>

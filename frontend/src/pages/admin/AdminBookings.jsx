@@ -1,89 +1,138 @@
 import { useEffect, useState } from "react";
-import { getAllBookings } from "../../api/booking.api";
-
-import { updateBookingStatus } from "../../api/booking.api";
-
-const handleStatusUpdate = async (id, status) => {
-  await updateBookingStatus(id, status);
-  alert(`Booking ${status.toLowerCase()}`);
-  window.location.reload();
-};
-
+import {
+  getAllBookings,
+  updateBookingStatus
+} from "../../api/booking.api";
 
 const AdminBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const res = await getAllBookings();
-        setBookings(res.data);
-      } catch (err) {
-        setError("Failed to load bookings");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchBookings = async () => {
+    try {
+      const res = await getAllBookings();
+      setBookings(res.data);
+    } catch {
+      setError("Failed to load bookings");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchBookings();
   }, []);
 
-  if (loading) return <p>Loading bookings...</p>;
-  if (error) return <p>{error}</p>;
+  const handleStatusUpdate = async (id, status) => {
+    await updateBookingStatus(id, status);
+    setBookings((prev) =>
+      prev.map((b) =>
+        b.id === id ? { ...b, booking_status: status } : b
+      )
+    );
+  };
+
+  if (loading) return <p className="text-center mt-10">Loading bookings...</p>;
+  if (error) return <p className="text-center text-red-600 mt-10">{error}</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>All Bookings (Admin)</h2>
+    <div className="max-w-7xl mx-auto px-6 py-10">
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+          All Bookings (Admin)
+        </h2>
 
-      {bookings.length === 0 && <p>No bookings found</p>}
+        {bookings.length === 0 ? (
+          <p className="text-gray-500">No bookings found</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-100 text-left text-sm text-gray-600">
+                  <th className="p-3">User</th>
+                  <th className="p-3">Package</th>
+                  <th className="p-3">Amount</th>
+                  <th className="p-3">Booking Status</th>
+                  <th className="p-3">Payment Status</th>
+                  <th className="p-3">Created At</th>
+                  <th className="p-3">Actions</th>
+                </tr>
+              </thead>
 
-      <table border="1" cellPadding="8" cellSpacing="0">
-        <thead>
-          <tr>
-            <th>User</th>
-            <th>Package</th>
-            <th>Amount</th>
-            <th>Booking Status</th>
-            <th>Payment Status</th>
-            <th>Created At</th>
-          </tr>
-        </thead>
-        <tbody>
-          {bookings.map((b) => (
-            <tr key={b.id}>
-              <td>{b.user_name}</td>
-              <td>{b.package_title}</td>
-              <td>₹{b.total_amount}</td>
-              <td>{b.booking_status}</td>
-              <td>{b.payment_status}</td>
-              <td>{new Date(b.created_at).toLocaleString()}</td>
-              <td>
-  {b.booking_status === "PENDING" ? (
-    <>
-      <button
-        onClick={() => handleStatusUpdate(b.id, "CONFIRMED")}
-      >
-        Confirm
-      </button>
+              <tbody>
+                {bookings.map((b) => (
+                  <tr
+                    key={b.id}
+                    className="border-t hover:bg-gray-50 transition"
+                  >
+                    <td className="p-3">{b.user_name}</td>
+                    <td className="p-3">{b.package_title}</td>
+                    <td className="p-3 font-semibold text-blue-600">
+                      ₹{b.total_amount}
+                    </td>
 
-      <button
-        onClick={() => handleStatusUpdate(b.id, "CANCELLED")}
-      >
-        Cancel
-      </button>
-    </>
-  ) : (
-    b.booking_status
-  )}
-</td>
+                    {/* Booking Status */}
+                    <td className="p-3">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-semibold
+                          ${
+                            b.booking_status === "CONFIRMED"
+                              ? "bg-green-100 text-green-700"
+                              : b.booking_status === "CANCELLED"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }
+                        `}
+                      >
+                        {b.booking_status}
+                      </span>
+                    </td>
 
-            </tr>
-          ))}
-          
-        </tbody>
-      </table>
+                    {/* Payment Status */}
+                    <td className="p-3">
+                      <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700">
+                        {b.payment_status}
+                      </span>
+                    </td>
+
+                    <td className="p-3 text-sm text-gray-500">
+                      {new Date(b.created_at).toLocaleString()}
+                    </td>
+
+                    {/* Actions */}
+                    <td className="p-3">
+                      {b.booking_status === "PENDING" ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() =>
+                              handleStatusUpdate(b.id, "CONFIRMED")
+                            }
+                            className="px-3 py-1 text-sm rounded bg-green-600 text-white hover:bg-green-700"
+                          >
+                            Confirm
+                          </button>
+
+                          <button
+                            onClick={() =>
+                              handleStatusUpdate(b.id, "CANCELLED")
+                            }
+                            className="px-3 py-1 text-sm rounded bg-red-600 text-white hover:bg-red-700"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-gray-500 text-sm">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
