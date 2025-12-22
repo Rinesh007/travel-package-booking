@@ -13,10 +13,13 @@ import PackageDetails from "./pages/PackageDetails";
 import AdminPackages from "./pages/admin/AdminPackages";
 import EditPackage from "./pages/admin/EditPackage";
 import UserDashboard from "./pages/UserDashboard";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
-       
+       <>
+      <Toaster position="top-right" />
+      {/* routes / layout */}
 
     
     <BrowserRouter>
@@ -67,6 +70,7 @@ function App() {
 
 </Routes>
     </BrowserRouter>
+    </>
   );
 }
 

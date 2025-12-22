@@ -2,6 +2,9 @@ import { useState } from "react";
 import { loginUser } from "../api/auth.api";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, useLocation, Link } from "react-router-dom";
+import toast from "react-hot-toast";
+
+
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -25,7 +28,7 @@ export default function Login() {
       login(res.data.token, res.data.user);
       navigate(redirectTo);
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      toast.error(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }

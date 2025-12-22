@@ -4,6 +4,7 @@ import {
   cancelBooking,
   confirmPayment
 } from "../api/booking.api";
+import toast from "react-hot-toast";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -46,7 +47,8 @@ const MyBookings = () => {
       await cancelBooking(bookingId);
       fetchBookings();
     } catch (err) {
-      alert(err.response?.data?.message || "Cancel failed");
+      toast.error(err.response?.data?.message || "Cancel failed");
+
     }
   };
 
@@ -55,7 +57,7 @@ const MyBookings = () => {
       await confirmPayment(bookingId);
       fetchBookings();
     } catch (err) {
-      alert(err.response?.data?.message || "Payment failed");
+      toast.error(err.response?.data?.message || "Payment failed");
     }
   };
 

@@ -3,6 +3,7 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { getPackageById } from "../api/package.api";
 import { createBooking } from "../api/booking.api";
 import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
 
 const PackageDetails = () => {
   const { id } = useParams();
@@ -32,7 +33,7 @@ const PackageDetails = () => {
     }
 
     if (user.role === "admin") {
-      alert("Admins cannot book packages");
+      toast.error("Admins cannot book packages");
       return;
     }
 

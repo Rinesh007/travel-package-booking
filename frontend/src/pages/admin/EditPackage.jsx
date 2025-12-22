@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getPackageById, updatePackage } from "../../api/package.api";
+import { Toaster } from "react-hot-toast";
 
 const EditPackage = () => {
   const { id } = useParams();
@@ -34,7 +35,7 @@ const EditPackage = () => {
     });
 
     setLoading(false);
-    alert("✅ Package updated successfully");
+    toast.success("Package updated successfully");
     navigate("/admin/packages");
   };
 

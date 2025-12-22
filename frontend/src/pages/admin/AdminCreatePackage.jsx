@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createPackage } from "../../api/package.api";
+import toast, { Toaster } from "react-hot-toast";
 
 const AdminCreatePackage = () => {
   const [form, setForm] = useState({
@@ -36,7 +37,7 @@ const AdminCreatePackage = () => {
         image_url: form.image_url
       });
 
-      setMessage("✅ Package created successfully");
+      toast.success("Package created successfully");
       setForm({
         title: "",
         destination: "",
@@ -46,7 +47,7 @@ const AdminCreatePackage = () => {
         image_url: ""
       });
     } catch (err) {
-      setMessage(err.response?.data?.message || "❌ Failed to create package");
+      toast.error(err.response?.data?.message || "❌ Failed to create package");
     } finally {
       setLoading(false);
     }

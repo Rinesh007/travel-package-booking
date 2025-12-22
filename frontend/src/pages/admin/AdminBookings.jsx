@@ -3,6 +3,7 @@ import {
   getAllBookings,
   updateBookingStatus
 } from "../../api/booking.api";
+import { Toaster } from "react-hot-toast";
 
 const AdminBookings = () => {
   const [bookings, setBookings] = useState([]);

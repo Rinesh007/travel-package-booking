@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getPackages, getDestinations } from "../api/package.api";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const Packages = () => {
   const [packages, setPackages] = useState([]);
@@ -64,7 +65,7 @@ const Packages = () => {
 
     // Admin cannot book
     if (user.role === "admin") {
-      alert("Admins cannot book packages");
+      toast.error("Admins cannot book packages");
       return;
     }
 
