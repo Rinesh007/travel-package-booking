@@ -3,6 +3,12 @@ const router = express.Router();
 
 const authenticate = require("../middleware/middleware");
 const authorizeRoles = require("../middleware/role.middleware");
+const {
+  createBookingValidator,
+  cancelBookingValidator
+} = require("../validators/booking.validator");
+
+
 
 const {
   createBooking,
@@ -15,7 +21,8 @@ const {
 
 
 // User creates booking
-router.post("/", authenticate, createBooking);
+router.post("/", authenticate, createBookingValidator, createBooking);
+
 
 // User views own bookings
 router.get("/me", authenticate, getMyBookings);
@@ -29,7 +36,8 @@ router.get(
 );
 
 // User cancels booking
-router.delete("/:id", authenticate, cancelMyBooking);
+router.delete("/:id", authenticate, cancelBookingValidator, cancelMyBooking);
+
 
 // User confirms booking via payment
 router.post("/:id/pay", authenticate, confirmPayment);

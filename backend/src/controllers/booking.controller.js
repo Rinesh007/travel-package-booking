@@ -13,12 +13,32 @@ const createBooking = async (req, res) => {
     const userId = req.user.id;
     const { packageId } = req.body;
 
-    if (!packageId) {
-      return res.status(400).json({
+   const createBooking = async (req, res) => {
+  try {
+    if (req.user.role === "admin") {
+      return res.status(403).json({
         success: false,
-        message: "Package ID is required"
+        message: "Admins cannot book packages"
       });
     }
+
+    const userId = req.user.id;
+    const { packageId } = req.body;
+
+    await bookingService.createBooking(userId, packageId);
+
+    res.status(201).json({
+      success: true,
+      message: "Booking created successfully"
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
 
     await bookingService.createBooking(userId, packageId);
 

@@ -1,15 +1,8 @@
 const authService = require("../services/auth.service");
 
-async function register(req, res) {
+const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
-
-    if (!name || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required"
-      });
-    }
 
     await authService.registerUser(name, email, password);
 
@@ -23,33 +16,60 @@ async function register(req, res) {
       message: error.message
     });
   }
-}
+};
 
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and password are required"
-      });
-    }
-
     const result = await authService.loginUser(email, password);
 
-    res.status(200).json({
+    const { accessToken, refreshToken, user } = result;
+
+    // 🍪 Set refresh token in HttpOnly cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false, // set true in production (HTTPS)
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    return res.status(200).json({
       success: true,
       message: "Login successful",
-      data: result
+      data: {
+        accessToken,
+        user
+      }
     });
   } catch (error) {
-    res.status(401).json({
+    return res.status(401).json({
       success: false,
       message: error.message
     });
   }
 };
+const refreshToken = async (req, res) => {
+  try {
+    const refreshTokenFromCookie = req.cookies.refreshToken;
+
+    const result = await authService.refreshAccessToken(
+      refreshTokenFromCookie
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Access token refreshed successfully",
+      data: result
+    });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
 
 const getProfile = (req, res) => {
   res.status(200).json({
@@ -67,11 +87,10 @@ const adminTest = (req, res) => {
   });
 };
 
-
 module.exports = {
   register,
   login,
+  refreshToken,
   getProfile,
   adminTest
 };
-

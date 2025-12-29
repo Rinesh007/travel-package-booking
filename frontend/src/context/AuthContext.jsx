@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import api, { setAccessToken as setAxiosAccessToken } from "../api/axios";
 
 const AuthContext = createContext(null);
 
@@ -6,31 +7,56 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // 🔄 Refresh access token on app load
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userData = localStorage.getItem("user");
+  const refreshAccessToken = async () => {
+    try {
+      // 1️⃣ Refresh access token
+      const res = await api.post("/auth/refresh-token");
+      const newAccessToken = res.data.data.accessToken;
 
-    if (token && userData) {
-      setUser(JSON.parse(userData));
+      setAxiosAccessToken(newAccessToken);
+
+      // 2️⃣ Fetch user profile
+      const meRes = await api.get("/auth/me");
+      setUser(meRes.data.data);
+    } catch {
+      setUser(null);
+      setAxiosAccessToken(null);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-  }, []);
-
-  const login = (token, user) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-    setUser(user);
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
+  refreshAccessToken();
+}, []);
+
+
+  const login = (newAccessToken, userData) => {
+    setAxiosAccessToken(newAccessToken);
+    setUser(userData);
+  };
+
+  const logout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch {
+      // ignore error
+    } finally {
+      setAxiosAccessToken(null);
+      setUser(null);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        loading
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

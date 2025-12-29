@@ -9,7 +9,8 @@ const PackageDetails = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+const { user, loading: authLoading } = useAuth();
+
 
   const [pkg, setPkg] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,23 +25,34 @@ const PackageDetails = () => {
     fetchPackage();
   }, [id]);
 
-  const handleBook = async () => {
-    if (!user) {
-      navigate("/login", {
-        state: { redirectTo: location.pathname }
-      });
-      return;
-    }
+ const handleBook = async () => {
+  if (authLoading) {
+  toast.loading("Checking authentication...");
+  return;
+}
 
-    if (user.role === "admin") {
-      toast.error("Admins cannot book packages");
-      return;
-    }
 
+  if (!user) {
+    navigate("/login", {
+      state: { redirectTo: location.pathname }
+    });
+    return;
+  }
+
+  if (user.role === "admin") {
+    toast.error("Admins cannot book packages");
+    return;
+  }
+
+  try {
     await createBooking(id);
-    alert("Booking created (Pending)");
+    toast.success("Booking created successfully");
     navigate("/my-bookings");
-  };
+  } catch (error) {
+    toast.error("Please login again");
+  }
+};
+
 
   if (loading) {
     return <p className="text-center mt-10">Loading package...</p>;
@@ -117,11 +129,13 @@ const PackageDetails = () => {
           </div>
 
           <button
-            onClick={handleBook}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
-          >
-            {user ? "Confirm Booking" : "Book Now"}
-          </button>
+  onClick={handleBook}
+  disabled={authLoading}
+  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+>
+  {loading ? "Checking auth..." : user ? "Confirm Booking" : "Book Now"}
+</button>
+
 
           {!user && (
             <p className="text-xs text-gray-500 text-center mt-3">

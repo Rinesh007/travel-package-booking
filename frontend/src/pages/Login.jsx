@@ -25,7 +25,7 @@ export default function Login() {
 
     try {
       const res = await loginUser({ email, password });
-      login(res.data.token, res.data.user);
+      login(res.data.data.accessToken, res.data.data.user);
       navigate(redirectTo);
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");
